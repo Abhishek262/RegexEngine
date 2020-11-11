@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #define DEBUG 1
 // version 3 :
 // 1. empty pattern
@@ -8,6 +9,20 @@
 // 4. anchor $
 // 5. metachar .
 // 6. closure *
+// 7. greedy, non greedy *
+// 8. greedy +
+// 9. question mark ?
+// 10. character brackets
+// 11. \w \d
+// 12. escape sequences
+
+typedef struct RE
+{
+	int type;  /* CHAR=1, STAR=2, PLUS=3, QUESTION_MARK=4, ANCHOR ^ =5,ANCHOR $=6 [] = 7, brackets get replaced by [ etc. */
+	char ch;   /* the character itself */
+	char *ccl; /* for [...] instead */
+			   // int     nccl;   /* true if class is negated [^...] */
+} RE;
 
 int match_here(char *pat, char *text);
 int match_star_non_greedy(char ch, char *pat, char *text);
@@ -16,6 +31,122 @@ int match_star_greedy(int c, char *pat, char *text);
 int start = 0;
 int end = 0;
 int length = 0;
+
+RE **regex_compile(char *pat)
+{
+
+	int len = strlen(pat);
+	RE **arr = (RE **)malloc(sizeof(RE *)*(len+1));
+
+	int c = 0;
+	for (int i = 0; i < len + 1; i++)
+	{
+
+		arr[i] = (RE *)malloc(sizeof(RE));
+
+		if (pat[c] == '\0')
+		{
+			arr[i]->ccl = NULL;
+			arr[i]->ch = '\0';
+			arr[i]->type = 0;			
+			// break;
+		}
+		else if (pat[c] == '*')
+		{
+			arr[i]->ccl = NULL;
+			arr[i]->ch = '*';
+			arr[i]->type = 2;
+		}
+		else if (pat[c] == '+')
+		{
+			arr[i]->ccl = NULL;
+			arr[i]->ch = '+';
+			arr[i]->type = 3;
+		}
+		else if (pat[c] == '?')
+		{
+			arr[i]->ccl = NULL;
+			arr[i]->ch = '?';
+			arr[i]->type = 4;
+		}
+		else if (pat[c] == '^')
+		{
+			arr[i]->ccl = NULL;
+			arr[i]->ch = '^';
+			arr[i]->type = 5;
+		}
+		else if (pat[c] == '$')
+		{
+			arr[i]->ccl = NULL;
+			arr[i]->ch = '$';
+			arr[i]->type = 6;
+		}
+		else if (pat[c] == '[')
+		{
+			int m = 0;
+			for (int j = i; pat[j] != ']'; j++)
+			{
+				c++;
+				m++;
+			}
+			arr[i]->ccl = (char *)malloc(sizeof(char) * (m + 2));
+			//c is at ] now
+			c++;
+			int r = 0;
+			for (int x = i + 1; x < m + 1; x++)
+			{
+				arr[i]->ccl[r] = pat[x];
+				r++;
+			}
+			arr[i]->ccl[m + 1] = '\0';
+			arr[i]->ch = '[';
+			arr[i]->type = 7;
+		}
+		else
+		{
+			if (pat[c] != '\0')
+			{
+				arr[i]->type = 1;
+				arr[i]->ch = pat[c];
+				arr[i]->ccl = NULL;
+			}
+		}
+
+		c++;
+
+		// printf("type: %d\n", arr[i]->type);
+		// printf("ch: %c\n", arr[i]->ch);
+		// printf("ccl: %s\n", arr[i]->ccl);
+		// printf("\n");
+	}
+	return arr;
+}
+
+int lengthRE(RE **arr)
+{
+	int c = 0;
+	while (1)
+	{
+		if(arr[c]->type ==0){
+			break;
+		}
+		c++;
+	}
+	// c++;
+	return c;
+}
+
+void printRE(RE **arr, int n)
+{
+	for (int i = 0; i < n; i++)
+	{
+		printf("type: %d\n", arr[i]->type);
+		printf("ch: %c\n", arr[i]->ch);
+		printf("ccl: %s\n", arr[i]->ccl);
+		printf("\n");
+	}
+}
+
 
 int match(char *pat, char *text)
 {
@@ -44,7 +175,7 @@ int match_here(char *pat, char *text)
 		return 1;
 	if (pat[1] == '?')
 	{
-		if (pat[0] == text[0])
+		if (pat[0] == text[0]|| pat[0]=='.')
 		{
 			end++;
 			return match_here(pat + 2, text + 1);
@@ -69,10 +200,18 @@ int match_here(char *pat, char *text)
 	}
 	if (pat[1] == '+')
 	{
-		if (*text == pat[0])
+		if (*text == pat[0] || pat[0] == '.')
 		{
-			end++;
-			return match_star_greedy(pat[0], pat + 2, ++text);
+			if (pat[2] == '?')
+			{
+				end++;
+				return match_star_non_greedy(pat[0],pat+3,++text);
+			}
+			else
+			{
+				end++;
+				return match_star_greedy(pat[0], pat + 2, ++text);
+			}
 		}
 	}
 	if (pat[0] == '$' && pat[1] == '\0')
@@ -128,24 +267,34 @@ int main()
 {
 	char text[4000];
 	int M;
-	char pattern[1000];
+	char *pattern;
+	pattern = NULL;
+	size_t bufsize = 1000;
 	int res;
 	scanf("%[^\n]s", text);
 	scanf("%d", &M);
+	getline(&pattern,&bufsize,stdin);
 
 	for (int i = 0; i < M; i++)
 	{
-		scanf("%s", pattern);
-		// printf("%s\n%s",pattern,text);
+		// scanf("%s", pattern);
+		getline(&pattern,&bufsize,stdin);
+		RE **re = regex_compile(pattern);
+		// printf("%d",lengthRE(re));
+		printRE(re,lengthRE(re));
+		pattern[strcspn(pattern, "\n")] = 0;
 		res = match(pattern, text);
+		// printf("%s\n",pattern);
 
 		if (res)
 		{
 			end = end + start - 1;
+			// printf("%s\n",pattern);
 			printf("%d %d %d\n", res, start, end);
 		}
 		else
 		{
+			// printf("%s\n",pattern);
 			printf("0\n");
 		}
 	}
