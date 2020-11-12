@@ -36,21 +36,43 @@ RE **regex_compile(char *pat)
 {
 
 	int len = strlen(pat);
-	RE **arr = (RE **)malloc(sizeof(RE *)*(len+1));
+	RE **arr = (RE **)malloc(sizeof(RE *) * (len + 1));
 
 	int c = 0;
 	for (int i = 0; i < len + 1; i++)
-	{	
+	{
 		// printf("c : %c\n",pat[c]);
-		
+
 		arr[i] = (RE *)malloc(sizeof(RE));
 
 		if (pat[c] == '\0')
 		{
 			arr[i]->ccl = NULL;
 			arr[i]->ch = '\0';
-			arr[i]->type = 0;			
+			arr[i]->type = 0;
 			// break;
+		}
+		else if (pat[c] == '\\')
+		{
+			if (pat[c + 1] == 'w')
+			{
+				arr[i]->ccl = "a-zA-Z_";
+				arr[i]->type = 7;
+				arr[i]->ch = '[';
+			}
+			else if (pat[c + 1] == 'd')
+			{
+				arr[i]->ccl = "0-9";
+				arr[i]->type = 7;
+				arr[i]->ch = '[';
+			}
+			else
+			{
+				arr[i]->ccl = NULL;
+				arr[i]->ch = pat[c + 1];
+				arr[i]->type = 1;
+			}
+			c++;
 		}
 		else if (pat[c] == '*')
 		{
@@ -97,7 +119,7 @@ RE **regex_compile(char *pat)
 			//c is at ] now
 			// c++;
 			int r = 0;
-			for (int x = f+1 ; x < f + m ; x++)
+			for (int x = f + 1; x < f + m; x++)
 			{
 				arr[i]->ccl[r] = pat[x];
 
@@ -118,7 +140,6 @@ RE **regex_compile(char *pat)
 			}
 		}
 		c++;
-
 	}
 	return arr;
 }
@@ -128,7 +149,8 @@ int lengthRE(RE **arr)
 	int c = 0;
 	while (1)
 	{
-		if(arr[c]->type ==0){
+		if (arr[c]->type == 0)
+		{
 			break;
 		}
 		c++;
@@ -147,7 +169,6 @@ void printRE(RE **arr, int n)
 		printf("\n");
 	}
 }
-
 
 int match(char *pat, char *text)
 {
@@ -176,7 +197,7 @@ int match_here(char *pat, char *text)
 		return 1;
 	if (pat[1] == '?')
 	{
-		if (pat[0] == text[0]|| pat[0]=='.')
+		if (pat[0] == text[0] || pat[0] == '.')
 		{
 			end++;
 			return match_here(pat + 2, text + 1);
@@ -206,7 +227,7 @@ int match_here(char *pat, char *text)
 			if (pat[2] == '?')
 			{
 				end++;
-				return match_star_non_greedy(pat[0],pat+3,++text);
+				return match_star_non_greedy(pat[0], pat + 3, ++text);
 			}
 			else
 			{
@@ -274,15 +295,15 @@ int main()
 	int res;
 	scanf("%[^\n]s", text);
 	scanf("%d", &M);
-	getline(&pattern,&bufsize,stdin);
+	getline(&pattern, &bufsize, stdin);
 
 	for (int i = 0; i < M; i++)
 	{
 		// scanf("%s", pattern);
-		getline(&pattern,&bufsize,stdin);
+		getline(&pattern, &bufsize, stdin);
 		RE **re = regex_compile(pattern);
 		// printf("%d",lengthRE(re));
-		printRE(re,lengthRE(re));
+		// printRE(re,lengthRE(re));
 		pattern[strcspn(pattern, "\n")] = 0;
 		res = match(pattern, text);
 		// printf("%s\n",pattern);
