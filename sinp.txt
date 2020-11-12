@@ -1,4 +1,8 @@
 a "witch" and her "broom" is one
-2
-".*?" is
-".+?" is
+6
+
+.?
+".*"
+".*?"
+".+"
+".*?"

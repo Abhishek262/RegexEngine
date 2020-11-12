@@ -25,8 +25,8 @@ typedef struct RE
 } RE;
 
 int match_here(RE **pat, char *text);
-int match_star_non_greedy(char ch, RE **pat, char *text);
-int match_star_greedy(int c, RE **pat, char *text);
+int match_star_non_greedy(RE *pat_str, RE **pat, char *text);
+int match_star_greedy(RE *pat_str, RE **pat, char *text);
 int match_bracket(RE *pat_str, char ch);
 
 int start = 0;
@@ -203,12 +203,12 @@ int match_here(RE **pat, char *text)
 		if (pat[2]->ch == '?' && pat[2]->type == 4)
 		{
 			// printf("non greedy\n");
-			return match_star_non_greedy(pat[0]->ch, pat + 3, text);
+			return match_star_non_greedy(pat[0], pat + 3, text);
 		}
 		else
 		{
 			// printf("greedy\n");
-			return match_star_greedy(pat[0]->ch, pat + 2, text);
+			return match_star_greedy(pat[0], pat + 2, text);
 		}
 	}
 	else if (pat[1]->ch == '+' && pat[1]->type == 3)
@@ -219,13 +219,13 @@ int match_here(RE **pat, char *text)
 		{
 			if (pat[2]->ch == '?' && pat[2]->type == 4)
 			{
-				// end++;
-				return match_star_non_greedy(pat[0]->ch, pat + 3, ++text);
+				end++;
+				return match_star_non_greedy(pat[0], pat + 3, ++text);
 			}
 			else
 			{
-				// end++;
-				return match_star_greedy(pat[0]->ch, pat + 2, ++text);
+				end++;
+				return match_star_greedy(pat[0], pat + 2, ++text);
 			}
 		}
 	}
@@ -253,7 +253,7 @@ int match_here(RE **pat, char *text)
 		end = length - start + 1;
 		return *text == '\0';
 	}
-	else if (*text != '\0' && (pat[0]->ch == '.' || pat[0]->ch == *text))
+	else if (*text != '\0' && (pat[0]->ch == '.' || pat[0]->ch == *text || (pat[0]->type ==7 && match_bracket(pat[0],*text) == 1)))
 	{
 		// printf("inside normal\n");
 
@@ -265,7 +265,7 @@ int match_here(RE **pat, char *text)
 	return 0;
 }
 
-int match_star_non_greedy(char ch, RE **pat, char *text)
+int match_star_non_greedy(RE *pat_str, RE **pat, char *text)
 {
 	do
 	{
@@ -273,16 +273,16 @@ int match_star_non_greedy(char ch, RE **pat, char *text)
 		if (match_here(pat, text))
 			return 1;
 		end++;
-	} while (*text != '\0' && (*text++ == ch || ch == '.'));
+	} while (*text != '\0' && (*text++ == pat_str->ch || pat_str->ch == '.' || (pat_str->type ==7 && match_bracket(pat_str,*text))));
 	return 0;
 }
 
-int match_star_greedy(int c, RE **pat, char *text)
+int match_star_greedy(RE *pat_str, RE **pat, char *text)
 {
 	char *t;
 	int pos = 0;
 
-	for (t = text; *t != '\0' && (*t == c || c == '.'); t++)
+	for (t = text; *t != '\0' && (*t == pat_str->ch || pat_str->ch == '.' || (pat_str->type ==7 && match_bracket(pat_str,*t))); t++)
 	{
 		pos++;
 	}
