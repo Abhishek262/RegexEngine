@@ -40,8 +40,9 @@ RE **regex_compile(char *pat)
 
 	int c = 0;
 	for (int i = 0; i < len + 1; i++)
-	{
-
+	{	
+		// printf("c : %c\n",pat[c]);
+		
 		arr[i] = (RE *)malloc(sizeof(RE));
 
 		if (pat[c] == '\0')
@@ -83,19 +84,24 @@ RE **regex_compile(char *pat)
 		}
 		else if (pat[c] == '[')
 		{
+			// printf("inside\n");
 			int m = 0;
-			for (int j = i; pat[j] != ']'; j++)
+			int f = c;
+			for (int j = c; pat[j] != ']'; j++)
 			{
+				// printf("char: %c ",pat[j]);
 				c++;
 				m++;
 			}
 			arr[i]->ccl = (char *)malloc(sizeof(char) * (m + 2));
 			//c is at ] now
-			c++;
+			// c++;
 			int r = 0;
-			for (int x = i + 1; x < m + 1; x++)
+			for (int x = f+1 ; x < f + m ; x++)
 			{
 				arr[i]->ccl[r] = pat[x];
+
+				// printf("%c ",arr[i]->ccl[r]);
 				r++;
 			}
 			arr[i]->ccl[m + 1] = '\0';
@@ -111,13 +117,8 @@ RE **regex_compile(char *pat)
 				arr[i]->ccl = NULL;
 			}
 		}
-
 		c++;
 
-		// printf("type: %d\n", arr[i]->type);
-		// printf("ch: %c\n", arr[i]->ch);
-		// printf("ccl: %s\n", arr[i]->ccl);
-		// printf("\n");
 	}
 	return arr;
 }
