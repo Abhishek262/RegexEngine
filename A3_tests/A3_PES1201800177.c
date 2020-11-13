@@ -15,6 +15,7 @@
 // 10. character brackets
 // 11. \w \d
 // 12. escape sequences
+// Doesnt handle \.
 
 typedef struct RE
 {
@@ -42,7 +43,6 @@ RE **regex_compile(char *pat)
 	int c = 0;
 	for (int i = 0; i < len + 1; i++)
 	{
-		// printf("c : %c\n",pat[c]);
 
 		arr[i] = (RE *)malloc(sizeof(RE));
 
@@ -107,24 +107,18 @@ RE **regex_compile(char *pat)
 		}
 		else if (pat[c] == '[')
 		{
-			// printf("inside\n");
 			int m = 0;
 			int f = c;
 			for (int j = c; pat[j] != ']'; j++)
 			{
-				// printf("char: %c ",pat[j]);
 				c++;
 				m++;
 			}
 			arr[i]->ccl = (char *)malloc(sizeof(char) * (m + 2));
-			//c is at ] now
-			// c++;
 			int r = 0;
 			for (int x = f + 1; x < f + m; x++)
 			{
 				arr[i]->ccl[r] = pat[x];
-
-				// printf("%c ",arr[i]->ccl[r]);
 				r++;
 			}
 			arr[i]->ccl[m + 1] = '\0';
@@ -156,7 +150,6 @@ int lengthRE(RE **arr)
 		}
 		c++;
 	}
-	// c++;
 	return c;
 }
 
@@ -176,7 +169,6 @@ int match(RE **pat, char *text)
 	start = 0;
 	end = 0;
 	length = strlen(text);
-	// printf("%d end: \n",length);
 
 	if (pat[0]->ch == '^' && pat[0]->type == 5)
 	{
@@ -196,28 +188,23 @@ int match(RE **pat, char *text)
 int match_here(RE **pat, char *text)
 {
 	// empty pattern
-	// printf("pattern : %c\n",pat[0]->ch);
 	if (pat[0]->type == 0)
 		return 1;
 	if (pat[1]->ch == '*' && pat[1]->type == 2)
 	{
-		// printf("inside *\n");
 		if (pat[2]->ch == '?' && pat[2]->type == 4)
 		{
-			// printf("non greedy\n");
 			return match_star_non_greedy(pat[0], pat + 3, text);
 		}
 		else
 		{
-			// printf("greedy\n");
 			return match_star_greedy(pat[0], pat + 2, text);
 		}
 	}
 	if (pat[1]->ch == '+' && pat[1]->type == 3)
 	{
-		// printf("inside +\n");
 
-		if (*text == pat[0]->ch || pat[0]->ch == '.' || (pat[0]->type ==7 && match_bracket(pat[0],*text)))
+		if (*text == pat[0]->ch || pat[0]->ch == '.' || (pat[0]->type == 7 && match_bracket(pat[0], *text)))
 		{
 			if (pat[2]->ch == '?' && pat[2]->type == 4)
 			{
@@ -227,19 +214,16 @@ int match_here(RE **pat, char *text)
 			else
 			{
 				end++;
-				// printf("here\n");
 				return match_star_greedy(pat[0], pat + 2, ++text);
 			}
 		}
 	}
 	if (pat[1]->ch == '?' && pat[1]->type == 4)
 	{
-		// printf("inside ?\n");
 
 		if (pat[0]->ch == text[0] || pat[0]->ch == '.')
 		{
 			end++;
-			// printf("GgG");
 			return match_here(pat + 2, text + 1);
 		}
 		else
@@ -249,20 +233,14 @@ int match_here(RE **pat, char *text)
 	}
 	if ((pat[0]->ch == '$' && pat[0]->type == 6) && (pat[1]->ch == '\0' && pat[1]->type == 0))
 	{
-		// printf("inside *$\n");
 
-		// end = strlen(text);
-		// printf("len : %d\n",length);
 		end = length - start;
 		return *text == '\0';
 	}
 	if (*text != '\0' && (pat[0]->ch == '.' || pat[0]->ch == *text || (pat[0]->type == 7 && match_bracket(pat[0], *text) == 1)))
 	{
 		end++;
-		// printf("inside normal, char = %c\n", pat[0]->ch);
 
-		// printf("e : %d\n",end);
-		// printf("pat : %c\n",pat[0]->ch);
 		return match_here(pat + 1, text + 1);
 	}
 	return 0;
@@ -277,12 +255,8 @@ int match_star_non_greedy(RE *pat_str, RE **pat, char *text)
 		temp = end;
 		if (match_here(pat, text))
 		{
-			// printf("\ntext : %s\n",text);
-			// printf("end : %d\n",end);
-			// end--;
 			return 1;
 		}
-		// if(end!=temp){}
 		end = temp;
 		end++;
 	} while (*text != '\0' && (*text++ == pat_str->ch || pat_str->ch == '.' || (pat_str->type == 7 && match_bracket(pat_str, *text))));
@@ -302,7 +276,6 @@ int match_star_greedy(RE *pat_str, RE **pat, char *text)
 	int temp;
 	do
 	{ /* * matches zero or more */
-		// printf("yee\n");
 		temp = end;
 		if (match_here(pat, t))
 		{
@@ -349,14 +322,12 @@ int main()
 
 	for (int i = 0; i < M; i++)
 	{
-		// scanf("%s", pattern);
 		getline(&pattern, &bufsize, stdin);
 		RE **re = regex_compile(pattern);
 		// printf("%d",lengthRE(re));
 		// printRE(re,lengthRE(re)+1);
 		pattern[strcspn(pattern, "\n")] = 0;
 		res = match(re, text);
-		// printf("%s\n", pattern);
 
 		if (res)
 		{
