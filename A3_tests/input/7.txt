@@ -1,0 +1,4 @@
+abbbcdddcffAX7XSs7
+2
+.*c.*c
+[A-Z7]*?

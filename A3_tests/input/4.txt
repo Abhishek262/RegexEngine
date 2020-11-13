@@ -1,0 +1,10 @@
+Axxd5*6sHG_j2s+sc999sS
+8
+x+\d*\w*?\d
+[A-Za-z]+\d
+G\w[0a-z1A-Z2]*\+
+G\w[0a-z1A-Z2]*\+*?
+\d.*\d
+
+\d.*?\d
+s.sh?

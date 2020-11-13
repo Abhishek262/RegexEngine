@@ -1,0 +1,8 @@
+abccdeccbbffeegd
+6
+c*de+c+b*f
+c+c+d+e+c+b+
+aa+c+
+\w+
+\w*
+a.*d
