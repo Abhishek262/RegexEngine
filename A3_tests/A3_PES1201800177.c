@@ -57,7 +57,7 @@ RE **regex_compile(char *pat)
 		{
 			if (pat[c + 1] == 'w')
 			{
-				arr[i]->ccl = "a-zA-Z_";
+				arr[i]->ccl = "a-zA-Z0-9_";
 				arr[i]->type = 7;
 				arr[i]->ch = '[';
 			}
@@ -217,7 +217,7 @@ int match_here(RE **pat, char *text)
 	{
 		// printf("inside +\n");
 
-		if (*text == pat[0]->ch || pat[0]->ch == '.')
+		if (*text == pat[0]->ch || pat[0]->ch == '.' || (pat[0]->type ==7 && match_bracket(pat[0],*text)))
 		{
 			if (pat[2]->ch == '?' && pat[2]->type == 4)
 			{

@@ -18,7 +18,7 @@
 
 typedef struct RE
 {
-	int type;  /* CHAR=1, STAR=2, PLUS=3, QUESTION_MARK=4, ANCHOR ^ =5,ANCHOR $=6 [] = 7, brackets get replaced by [  */
+	int type;  /* CHAR=1, STAR=2, PLUS=3, QUESTION_MARK=4, ANCHOR ^ =5,ANCHOR $=6 [] = 7, /. = 8 brackets get replaced by [  */
 	char ch;   /* the character itself */
 	char *ccl; /* for [...] instead */
 			   // int     nccl;   /* true if class is negated [^...] */
@@ -57,7 +57,7 @@ RE **regex_compile(char *pat)
 		{
 			if (pat[c + 1] == 'w')
 			{
-				arr[i]->ccl = "a-zA-Z_";
+				arr[i]->ccl = "a-zA-Z0-9_";
 				arr[i]->type = 7;
 				arr[i]->ch = '[';
 			}
@@ -66,6 +66,11 @@ RE **regex_compile(char *pat)
 				arr[i]->ccl = "0-9";
 				arr[i]->type = 7;
 				arr[i]->ch = '[';
+			}
+			else if(pat[c+1]=='.'){
+				arr[i]->ccl = NULL;
+				arr[i]->ch = '.';
+				arr[i]->type = 8;
 			}
 			else
 			{
@@ -217,7 +222,7 @@ int match_here(RE **pat, char *text)
 	{
 		// printf("inside +\n");
 
-		if (*text == pat[0]->ch || pat[0]->ch == '.')
+		if (*text == pat[0]->ch || (pat[0]->ch == '.' && pat[0]->type==1) || (pat[0]->type ==7 && match_bracket(pat[0],*text)))
 		{
 			if (pat[2]->ch == '?' && pat[2]->type == 4)
 			{
@@ -236,7 +241,7 @@ int match_here(RE **pat, char *text)
 	{
 		// printf("inside ?\n");
 
-		if (pat[0]->ch == text[0] || pat[0]->ch == '.')
+		if (pat[0]->ch == text[0] || (pat[0]->ch == '.' && pat[0]->type==1))
 		{
 			end++;
 			// printf("GgG");
