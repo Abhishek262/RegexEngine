@@ -184,9 +184,11 @@ int match(RE **pat, char *text)
 	}
 	do
 	{
+		int temp = end;
 		if (match_here(pat, text))
 			return 1;
 		start++;
+		end = temp;
 	} while (*text++ != '\0');
 	return 0;
 }
@@ -197,7 +199,7 @@ int match_here(RE **pat, char *text)
 	// printf("pattern : %c\n",pat[0]->ch);
 	if (pat[0]->type == 0)
 		return 1;
-	else if (pat[1]->ch == '*' && pat[1]->type == 2)
+	if (pat[1]->ch == '*' && pat[1]->type == 2)
 	{
 		// printf("inside *\n");
 		if (pat[2]->ch == '?' && pat[2]->type == 4)
@@ -211,7 +213,7 @@ int match_here(RE **pat, char *text)
 			return match_star_greedy(pat[0], pat + 2, text);
 		}
 	}
-	else if (pat[1]->ch == '+' && pat[1]->type == 3)
+	if (pat[1]->ch == '+' && pat[1]->type == 3)
 	{
 		// printf("inside +\n");
 
@@ -230,7 +232,7 @@ int match_here(RE **pat, char *text)
 			}
 		}
 	}
-	else if (pat[1]->ch == '?' && pat[1]->type == 4)
+	if (pat[1]->ch == '?' && pat[1]->type == 4)
 	{
 		// printf("inside ?\n");
 
@@ -245,7 +247,7 @@ int match_here(RE **pat, char *text)
 			return match_here(pat + 2, text);
 		}
 	}
-	else if ((pat[0]->ch == '$' && pat[0]->type == 6) && (pat[1]->ch == '\0' && pat[1]->type == 0))
+	if ((pat[0]->ch == '$' && pat[0]->type == 6) && (pat[1]->ch == '\0' && pat[1]->type == 0))
 	{
 		// printf("inside *$\n");
 
@@ -254,13 +256,13 @@ int match_here(RE **pat, char *text)
 		end = length - start;
 		return *text == '\0';
 	}
-	else if (*text != '\0' && (pat[0]->ch == '.' || pat[0]->ch == *text || (pat[0]->type == 7 && match_bracket(pat[0], *text) == 1)))
+	if (*text != '\0' && (pat[0]->ch == '.' || pat[0]->ch == *text || (pat[0]->type == 7 && match_bracket(pat[0], *text) == 1)))
 	{
+		end++;
 		// printf("inside normal, char = %c\n", pat[0]->ch);
 
 		// printf("e : %d\n",end);
 		// printf("pat : %c\n",pat[0]->ch);
-		end++;
 		return match_here(pat + 1, text + 1);
 	}
 	return 0;

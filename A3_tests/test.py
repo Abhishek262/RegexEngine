@@ -34,7 +34,7 @@ def run_tests(n):
 
 def main():
     print("Add your file in the A3_tests folder.")
-    srn = input("Enter SRN: ")
+    srn = input("Enter SRN : ")
     file_name = "A3_" + srn
     file_name = file_name.upper() + ".c"
 

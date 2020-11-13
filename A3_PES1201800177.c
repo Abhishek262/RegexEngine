@@ -184,9 +184,11 @@ int match(RE **pat, char *text)
 	}
 	do
 	{
+		int temp = end;
 		if (match_here(pat, text))
 			return 1;
 		start++;
+		end = temp;
 	} while (*text++ != '\0');
 	return 0;
 }
@@ -257,7 +259,7 @@ int match_here(RE **pat, char *text)
 	if (*text != '\0' && (pat[0]->ch == '.' || pat[0]->ch == *text || (pat[0]->type == 7 && match_bracket(pat[0], *text) == 1)))
 	{
 		end++;
-		printf("inside normal, char = %c\n", pat[0]->ch);
+		// printf("inside normal, char = %c\n", pat[0]->ch);
 
 		// printf("e : %d\n",end);
 		// printf("pat : %c\n",pat[0]->ch);
@@ -351,7 +353,7 @@ int main()
 		getline(&pattern, &bufsize, stdin);
 		RE **re = regex_compile(pattern);
 		// printf("%d",lengthRE(re));
-		printRE(re,lengthRE(re)+1);
+		// printRE(re,lengthRE(re)+1);
 		pattern[strcspn(pattern, "\n")] = 0;
 		res = match(re, text);
 		// printf("%s\n", pattern);
